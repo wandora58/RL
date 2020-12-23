@@ -47,29 +47,35 @@ class MUSEnv(gym.Env):
 
         if self.train_flg:
 
+            channel_data = []
             batch_data = []
             cdus_capacity = []
             rand_capacity = []
             for _ in range(self.batch_size):
-                data, cdus, rand = self._generate_data()
+                channel, data, cdus, rand = self._generate_data()
+
+                channel_data.append(channel)
                 batch_data.append(data)
                 cdus_capacity.append(cdus)
                 rand_capacity.append(rand)
 
+            self.H = np.array(channel_data)
             self.state = np.array(batch_data)
 
-            return self.state, cdus_capacity, rand_capacity
+            return self.H, self.state, cdus_capacity, rand_capacity
 
 
         else:
             batch_data = []
 
-            data, cdus_capacity, rand_capacity, duration = self._generate_data()
+            channel, data, cdus_capacity, rand_capacity, duration = self._generate_data()
+            channel_data = np.tile(channel, (self.batch_size, 1, 1))
             batch_data = np.tile(data, (self.batch_size, 1, 1))
 
+            self.H = np.array(channel_data)
             self.state = np.array(batch_data)
 
-            return self.state, cdus_capacity, rand_capacity, duration
+            return self.H, self.state, cdus_capacity, rand_capacity, duration
 
 
     def _generate_data(self):
@@ -110,10 +116,30 @@ class MUSEnv(gym.Env):
 
         H = H.T
 
+        channel = np.conjugate(channel.T) @ channel
+
+        gH = np.zeros((self.user*2, self.user_antenna), dtype=np.float)
+        gH_tmp = np.zeros((self.user*2, self.user_antenna), dtype=np.float)
+
+        for s in range(self.user):
+            if s == 0:
+                for r in range(self.user):
+                    gH[2*r, 0] = np.real(channel[r,0])
+                    gH[2*r+1, 0] = np.imag(channel[r,0])
+
+            else:
+                for r in range(self.user):
+                    gH_tmp[2*r, 0] = np.real(channel[r,s])
+                    gH_tmp[2*r+1, 0] = np.imag(channel[r,s])
+
+                gH = np.concatenate([gH, gH_tmp], axis=1)
+
+        gH = gH.T
+
         if self.train_flg:
-            return H, cdus, rand
+            return H, gH, cdus, rand
         else:
-            return H, cdus, rand, duration
+            return H, gH, cdus, rand, duration
 
 
     def CDUS(self, channel):

@@ -103,8 +103,8 @@ def get_channel_capacity(channel, combinations, batch_size, sel_user, user, user
 
     one = tf.ones([batch_size, BS_antenna])
     zero = tf.zeros([batch_size, BS_antenna, sel_user])
-    I = tf.cast(tf.complex(tf.matrix_diag(one), zero), dtype=tf.complex128)
-    # I = tf.complex(tf.matrix_diag(one), zero)
+    # I = tf.cast(tf.complex(tf.matrix_diag(one), zero), dtype=tf.complex128)
+    I = tf.complex(tf.matrix_diag(one), zero)
 
     sn_complex_channel = tf.add(I, SNR/sel_user * complex_channel)
     determinant = tf.matrix_determinant(sn_complex_channel)

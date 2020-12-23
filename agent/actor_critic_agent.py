@@ -34,6 +34,10 @@ class ActorCriticAgent(object):
         input = tf.placeholder(shape=(None, *data_dim), dtype=tf.float32, name='input_data')
         self.p_holders = input
 
+        c_data_dim = (self.user, self.BS_antenna*2)
+        channel = tf.placeholder(shape=(None, *c_data_dim), dtype=tf.float32, name='channel_data')
+        self.c_holders = channel
+
         # Create common Encoder network
         self.encoder = Encoder(batch_size=self.batch_size, user=self.user)
         enc_outputs, enc_state = self.encoder.build_model(input)
@@ -47,7 +51,7 @@ class ActorCriticAgent(object):
         self.state_value = self.critic_decoder.build_model(enc_outputs, enc_state)
 
         # Calculate distance (reward) for tour
-        self.reward = get_channel_capacity(input, self.combinations, batch_size, sel_user, user, user_antenna, BS_antenna, self.SNR)
+        self.reward = get_channel_capacity(channel, self.combinations, batch_size, sel_user, user, user_antenna, BS_antenna, self.SNR)
 
         # Calculate loss
         self.model_prds = [log_prob, self.combinations, self.state_value]
@@ -64,12 +68,13 @@ class ActorCriticAgent(object):
 
 
     # Update model (= agent.predict, env.step, agent.update)
-    def update_model(self, sess, state):
+    def update_model(self, sess, state, channel):
 
         input_data = self.p_holders
+        channel_data = self.c_holders
         v_optim, p_optim = self.opts
 
-        feed_dict = {input_data: state}
+        feed_dict = {input_data: state, channel_data: channel}
 
         # Update critic
         tensors = [v_optim, self.losses, self.reward, self.model_prds]
@@ -83,11 +88,12 @@ class ActorCriticAgent(object):
 
 
     # Predict loss（= agent.predict、env.step）
-    def predict_loss(self, sess, state):
+    def predict_loss(self, sess, state, channel):
 
         input_data = self.p_holders
+        channel_data = self.c_holders
 
-        feed_dict = {input_data: state}
+        feed_dict = {input_data: state, channel_data: channel}
         tensors = self.combinations
         combi = sess.run(tensors, feed_dict)
 

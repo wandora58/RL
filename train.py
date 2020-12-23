@@ -48,7 +48,7 @@ def train():
     SNRdB = 30 # SNR(dB)
 
     batch_size = 4               # batch size
-    feature_dim = BS_antenna * 2  # dimensions of feature value
+    feature_dim = user * 2  # dimensions of feature value
 
     # Get args
     args = get_args()
@@ -82,12 +82,12 @@ def train():
     # start train
     for i_episode in range(n_episodes):
 
-        state, cdus_capacity, rand_capacity = env.reset()
+        channel, state, cdus_capacity, rand_capacity = env.reset()
 
         # update model（= agent.predict、env.step、agent.update）
         # First, generate sample sequence and record likelihood of each sample each time to the end,
         # Second, evaluate and update entire network using the recorded likelihood
-        losses, reward, model_prds = agent.update_model(sess, state)
+        losses, reward, model_prds = agent.update_model(sess, state, channel)
         loss, critic_loss, actor_loss = losses
         log_prob, combi, state_value = model_prds
 
