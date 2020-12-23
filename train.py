@@ -38,10 +38,10 @@ def train():
 
     fc = 28 * 1e9 # center frequency
 
-    user = 4        # num of user
+    user = 40        # num of user
     BS = 1           # num of BS
     user_antenna = 1 # num of anntena per user
-    BS_antenna = 2   # num of anntena per BS
+    BS_antenna = 10  # num of anntena per BS
 
     sel_user = math.floor(BS_antenna/user_antenna) # num of selected users
 
