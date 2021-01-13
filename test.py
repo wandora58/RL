@@ -13,9 +13,7 @@ output:
         - list_results.pkl: list of predict results
 
 usage-example:
-    python3 train.py --log_dir=./result \
-    --model_path=./results/model.099800-0.394-2.65370.ckpt \
-    --n_episodes=5000
+    python3 test.py --log_dir=./result --model_path=./result/10to5/normal/model.217300-28.467--0.41603.ckpt --n_episodes=100
 """
 import os
 import argparse
@@ -63,17 +61,19 @@ def test():
     # Setup
     train_flg = False  # Whether to perform reinforcement learning
 
-    user = 20        # num of user
+    fc = 28 * 1e9 # center frequency
+
+    user = 10        # num of user
     BS = 1           # num of BS
     user_antenna = 1 # num of anntena per user
-    BS_antenna = 10   # num of anntena per BS
+    BS_antenna = 5   # num of anntena per BS
 
     sel_user = math.floor(BS_antenna/user_antenna) # num of selected users
 
-    SNRdB = 10 # SNR(dB)
+    SNRdB = 30 # SNR(dB)
 
-    batch_size = 10               # batch size
-    feature_dim = BS_antenna * 2  # dimensions of feature value
+    batch_size = 1               # batch size
+    feature_dim = user * 2  # dimensions of feature value
 
     # Get args
     args = get_args()
@@ -86,7 +86,7 @@ def test():
     sess = tf.Session()
 
     # create instance
-    env = MUSEnv(train_flg, batch_size, user, user_antenna, BS, BS_antenna, sel_user, SNRdB)
+    env = MUSEnv(train_flg, batch_size, fc, user, user_antenna, BS, BS_antenna, sel_user, SNRdB)
     agent = ActorCriticAgent(batch_size=batch_size, user=user, sel_user=sel_user, feature_dim=feature_dim, user_antenna=user_antenna, BS_antenna=BS_antenna, SNRdB=SNRdB)
     logger = ObjectLogger(log_dir)
 
@@ -109,11 +109,11 @@ def test():
     # start test
     for i_episode in range(n_episodes):
 
-        state, cdus_capacity, rand_capacity, cdus_time = env.reset()
+        channel, state, cdus_capacity, rand_capacity, cdus_time = env.reset()
 
         # predict loss (= agent.predict、env.step）
         start = time.time()
-        combi = agent.predict_loss(sess, state)
+        combi = agent.predict_loss(sess, state, channel)
         pred_time = time.time() - start
 
         # loss, critic_loss, actor_loss = losses
@@ -224,5 +224,5 @@ def capacity_test():
 
 if __name__ == '__main__':
     test()
-    capacity_test()
+    # capacity_test()
 

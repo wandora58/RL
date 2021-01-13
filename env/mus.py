@@ -180,7 +180,7 @@ class MUSEnv(gym.Env):
                 U.remove(s1)
                 S.append(s1)
                 H_sel = S1.copy()
-
+                
             else:
                 s1 = 0
                 tmp_s = 0

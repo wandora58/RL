@@ -4,7 +4,7 @@ import numpy as np
 class Rappaport_channel:
     def __init__(self, fc, user, user_antenna, BS, BS_antenna):
         self.c = 3.0 * 1e8
-        self.lamda = fc/self.c
+        self.lamda = self.c/fc
         self.user = user
         self.user_antenna = user_antenna
         self.BS = BS
@@ -131,14 +131,14 @@ class Rappaport_channel:
 
             # step14) チャネル生成
             H_ = np.zeros((self.BS_antenna, 1), dtype=np.complex)
-
             for n in range(N):
                 for m in range(Mn):
                     at = np.exp(1j * 2 * np.pi / self.lamda * np.cos(theta_mn_AOD[m][n]) * self.space).T
                     ar = np.exp(1j * 2 * np.pi / self.lamda * (radius_user * np.cos(phi_mn_AOA[m][n]) * np.cos(theta_user) * np.cos(theta_mn_AOA[m][n]) - radius_user * np.cos(phi_mn_AOA[m][n]) * np.sin(theta_user) * np.sin(theta_mn_AOA[m][n])))
+        
                     H_[:,0] = a_mn[m][n] * np.exp(1j*psi_mn[m][n]) * at * np.conjugate(ar) + H_[:,0]
+
 
             H[:,s] = H_[:,0]
 
         return H
-
